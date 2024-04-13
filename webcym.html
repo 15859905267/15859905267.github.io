@@ -1,0 +1,210 @@
+<html lang="en">  
+<head>  
+    <meta charset="utf-8" />  
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />  
+    <title>WebTest</title>  
+  
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />  
+    <script src="https://js.arcgis.com/4.29/"></script>  
+  
+    <style>  
+        body, html {    
+            height: 100%;    
+            margin: 0;    
+            padding: 0;    
+        }    
+        #viewDiv {  
+            padding: 0;  
+            margin: 0;  
+            height: 100%;  
+            width: 100%;  
+        }  
+        #header {    
+            height: 50px;   
+            background-color: #1CC7AE;   
+            text-align: center;    
+            line-height: 50px;   
+        }    
+        #basemapGalleryDiv {    
+            height: 100px;   
+            background-color: #1C89C7;   
+            overflow: auto;   
+            
+        }
+        .esri-scale-bar {  
+            position: absolute;  
+            bottom: 10px; 
+            right: 10px; 
+            z-index: 5;  
+        }    
+    
+        main {    
+            display: flex;    
+            flex-direction: column;    
+            height: calc(100% - 50px);   
+        }    
+       #timeSlider {
+            position: absolute;
+            top: 500px;  /* Adjust this value to move the time slider up or down */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;  /* Adjust this value to increase or decrease the width of the time slider */
+        }
+
+    </style>  
+  
+    <script>  
+        require([  
+            "esri/Map",  
+            "esri/views/MapView",  
+            "esri/layers/FeatureLayer",  
+            "esri/widgets/BasemapGallery",
+            "esri/widgets/ScaleBar",
+            "esri/widgets/Legend",
+            "esri/widgets/Search",
+            "esri/widgets/LayerList",
+            "esri/widgets/Expand",
+            "esri/PopupTemplate"
+        ], (Map, MapView, FeatureLayer, BasemapGallery,ScaleBar,Legend,Search,LayerList,Expand,PopupTemplate) => {   
+            const template1 = new PopupTemplate({
+    title: "{字符年}{Name}地震情况", // 更改为你的字段名
+    content: [
+        {
+            type: "fields",
+            fieldInfos: [
+                {
+                    fieldName: "平均次数", // 更改为你的字段名
+                    label: "平均次数", // 更改为你想显示的标签
+                    format: {
+                        places: 2 // 保留两位小数
+                    }
+                },
+                {
+                    fieldName: "平均震级", // 更改为你的字段名
+                    label: "平均震级", // 更改为你想显示的标签
+                    format: {
+                        places: 2 // 保留两位小数
+                    }
+                }
+                // 你可以添加更多的字段
+            ]
+        }
+    ]
+});
+
+            
+            const template2 = new PopupTemplate({
+                title: "全国地震点", // 更改为你的字段名
+                content: [
+        {
+            type: "fields",
+            fieldInfos: [
+                {
+                    fieldName: "省份", // 更改为你的字段名
+                    label: "NAME", // 更改为你想显示的标签
+                    
+                },
+                {
+                    fieldName: "time", // 更改为你的字段名
+                    label: "时间", // 更改为你想显示的标签
+                  
+                },
+                {
+                    fieldName: "longitude", // 更改为你的字段名
+                    label: "经度", // 更改为你想显示的标签
+                  
+                },
+                {
+                    fieldName: "	latitude", // 更改为你的字段名
+                    label: "纬度", // 更改为你想显示的标签
+                  
+                }
+                
+                // 你可以添加更多的字段
+            ]
+        }
+    ]
+});
+
+            const featureLayer = new FeatureLayer({  
+                url: "https://www.geosceneonline.cn/server/rest/services/Hosted/sunsi2/FeatureServer",
+                popupTemplate: template1
+            }); 
+            const featureLayer2 = new FeatureLayer({  
+                url: "https://www.geosceneonline.cn/server/rest/services/Hosted/ddddzzzz/FeatureServer/0",
+                popupTemplate: template2
+            });       
+
+            const map = new Map({  
+                basemap: "streets"  
+            });  
+            map.add(featureLayer);
+            map.add(featureLayer2); 
+
+            const view = new MapView({  
+                map: map,  
+                container: "viewDiv",  
+                zoom: 2,  
+                center: [118, 26]  
+            });  
+
+            const scaleBar = new ScaleBar({
+             view: view,
+             unit: "imperial"
+             });
+             view.ui.add(scaleBar, {
+             position: "bottom-right"
+             });
+             
+
+            var legend = new Legend({  
+             view: view  
+             });  
+             var legendExpand = new Expand({
+             view: view,
+             content: legend,
+             expandIconClass: "esri-icon-legend", // 更改为地图图标
+             group: "top-right"
+             });
+             view.ui.add(legendExpand, "top-right");
+
+            var search = new Search({  
+             view: view  
+             });  
+             view.ui.add(search, "top-left"); 
+             view.ui.move("zoom", "bottom-left");
+
+             
+
+            var layerList = new LayerList({  
+             view: view  
+             });  
+             var layerListExpand = new Expand({
+             view: view,
+             content: layerList,
+             expandIconClass: "esri-icon-layers", // 更改为图层图标
+             group: "top-right"
+             });
+             view.ui.add(layerListExpand, "top-right");
+            
+            var basemapGallery = new BasemapGallery({    
+                view: view,    
+                container: "basemapGalleryDiv",
+                visibleBasemaps: ["topo-vector", "satellite", "streets-night-vector"]    
+            });    
+            basemapGallery.startup();
+        });  
+        
+    </script>  
+</head>  
+  
+<body>  
+    <header id="header">2018-2023年全国地震分布情况</header>    
+    <main>    
+        <div id="viewDiv"></div>  
+        <div id="basemapGalleryDiv"></div>
+    </main>    
+</body>  
+</html>  
+
+
